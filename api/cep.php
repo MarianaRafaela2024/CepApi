@@ -18,7 +18,51 @@ switch($method){
     $stmt->execute([$cep]);
     echo json_encode($stmt->fetch());
     break;
-    case 'POST': /* inserir */ break;
+    case 'POST': 
+    
+        $cepInput = preg_replace('/\D/', '', $body['cep'] ?? '');
+
+        $logradouro = $body['logradouro'] ?? '';
+        $bairro = $body['bairro'] ?? '';
+        $cidade = $body['cidade'] ?? '';
+        $estado = $body['estado'] ?? '';
+
+        if (
+            empty($cepInput) ||
+            empty($logradouro) ||
+            empty($bairro) ||
+            empty($cidade) ||
+            empty($estado)
+        ) {
+            http_response_code(400);
+
+            echo json_encode([
+                'error' => 'Preencha todos os campos'
+            ]);
+
+            exit;
+        }
+
+        $stmt = $pdo->prepare(
+            'INSERT INTO cep
+            (cep, logradouro, bairro, cidade, estado)
+            VALUES (?, ?, ?, ?, ?)'
+        );
+
+        $stmt->execute([
+            $cepInput,
+            $logradouro,
+            $bairro,
+            $cidade,
+            $estado
+        ]);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'CEP cadastrado com sucesso'
+        ]);
+        
+    break;
     case 'PUT':
         
         
