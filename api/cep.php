@@ -19,6 +19,25 @@ switch($method){
     echo json_encode($stmt->fetch());
     break;
     case 'POST': /* inserir */ break;
-    case 'PUT':  /* atualizar */ break;
-    case 'DELETE': /* remover */ break;
+    case 'PUT':
+        
+        
+    break;
+    case 'DELETE': 
+        $cep = preg_replace('/\D/', '', $cep);
+        
+        $stmt = $pdo->prepare(
+            'DELETE * FROM cep
+            WHERE REPLACE(cep,"-","")=?'
+        );
+
+        $stmt->execute([$cep]);
+
+        if ($stmt->rowCount() > 0) {
+            echo json_encode(['success' => true, 'message' => 'CEP removido com sucesso']);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'CEP não encontrado']);
+        }
+    break;
 }
