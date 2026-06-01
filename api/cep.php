@@ -71,7 +71,7 @@ switch($method){
         $cep = preg_replace('/\D/', '', $cep);
         
         $stmt = $pdo->prepare(
-            'DELETE * FROM cep
+            'DELETE FROM cep  
             WHERE REPLACE(cep,"-","")=?'
         );
 
