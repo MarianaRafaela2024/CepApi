@@ -431,7 +431,7 @@
 </div>
 
 <script>
-  const API_URL = 'http://localhost/apiGit/CepApi/api/cep.php';
+  const API_URL = 'http://localhost/CepApi/api/cep.php';
 
   // ---- Tabs ----
   document.querySelectorAll('.tab').forEach(tab => {
@@ -504,7 +504,7 @@
       logradouro: document.getElementById('post-logradouro').value.trim(),
       bairro:     document.getElementById('post-bairro').value.trim(),
       cidade:     document.getElementById('post-cidade').value.trim(),
-      estado:     document.getElementById('post-estado').value.trim().toUpperCase(),
+      uf:     document.getElementById('post-estado').value.trim().toUpperCase(),
     };
 
     const box = document.getElementById('post-response');
