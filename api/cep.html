@@ -136,6 +136,7 @@
   .tab[data-tab="get"] .method { background: rgba(0,229,160,0.15); color: var(--accent); }
   .tab[data-tab="post"] .method { background: rgba(255,209,102,0.15); color: var(--accent3); }
   .tab[data-tab="delete"] .method { background: rgba(255,77,109,0.15); color: var(--accent2); }
+  .tab[data-tab="put"] .method { background: rgba(160,130,255,0.15); color: #a082ff; }
 
   /* Panels */
   .panel { display: none; }
@@ -230,6 +231,9 @@
 
   .btn-delete { background: var(--accent2); color: #fff; }
   .btn-delete:hover { background: #ff6b85; }
+
+  .btn-put { background: #a082ff; color: #fff; }
+  .btn-put:hover { background: #b89fff; }
 
   /* Response area */
   .response-box {
@@ -342,6 +346,9 @@
     <button class="tab" data-tab="delete">
       <span class="method">DEL</span> Remover
     </button>
+    <button class="tab" data-tab="put">
+      <span class="method">PUT</span> Atualizar
+    </button>
   </div>
 
   <!-- GET -->
@@ -428,10 +435,48 @@
     </div>
   </div>
 
-</div>
+  <!-- PUT -->
+  <div class="panel" id="panel-put">
+    <div class="card">
+      <div class="card-title">// Atualizar CEP existente</div>
+      <div class="field">
+        <label>CEP (para localizar o registro)</label>
+        <input type="text" id="put-cep" placeholder="00000-000" maxlength="9">
+      </div>
+      <div class="field">
+        <label>Logradouro</label>
+        <input type="text" id="put-logradouro" placeholder="Rua, Avenida...">
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Bairro</label>
+          <input type="text" id="put-bairro" placeholder="Bairro">
+        </div>
+        <div class="field">
+          <label>Cidade</label>
+          <input type="text" id="put-cidade" placeholder="Cidade">
+        </div>
+      </div>
+      <div class="field">
+        <label>Estado (UF)</label>
+        <input type="text" id="put-estado" placeholder="SP" maxlength="2" style="max-width:120px">
+      </div>
+      <button class="btn btn-put" onclick="doPut()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        ATUALIZAR
+      </button>
+    </div>
 
+    <div class="card">
+      <div class="card-title">// Resposta</div>
+      <div id="put-status" class="status-line" style="display:none"></div>
+      <div id="put-response" class="response-box">Aguardando atualização...</div>
+    </div>
+  </div>
+
+</div>
 <script>
-  const API_URL = 'http://localhost/CepApi/api/cep.php';
+  const API_URL = 'http://localhost/apiGit/CepApi/api/cep.php';
 
   // ---- Tabs ----
   document.querySelectorAll('.tab').forEach(tab => {
@@ -444,7 +489,7 @@
   });
 
   // ---- CEP mask ----
-  ['get-cep','post-cep','delete-cep'].forEach(id => {
+  ['get-cep','post-cep','delete-cep','put-cep'].forEach(id => {
     document.getElementById(id).addEventListener('input', e => {
       let v = e.target.value.replace(/\D/g,'').slice(0,8);
       if(v.length > 5) v = v.slice(0,5) + '-' + v.slice(5);
@@ -504,7 +549,7 @@
       logradouro: document.getElementById('post-logradouro').value.trim(),
       bairro:     document.getElementById('post-bairro').value.trim(),
       cidade:     document.getElementById('post-cidade').value.trim(),
-      uf:     document.getElementById('post-estado').value.trim().toUpperCase(),
+      estado:     document.getElementById('post-estado').value.trim().toUpperCase(),
     };
 
     const box = document.getElementById('post-response');
@@ -552,6 +597,41 @@
       box.className = 'response-box error';
       box.textContent = 'Erro: ' + e.message;
       setStatus('delete-status', false, 'Falha na requisição');
+    }
+  }
+
+  // ---- PUT ----
+  async function doPut() {
+    const cep = document.getElementById('put-cep').value.trim();
+    if (!cep) { alert('Informe o CEP a ser atualizado'); return; }
+
+    const body = {
+      logradouro: document.getElementById('put-logradouro').value.trim(),
+      bairro:     document.getElementById('put-bairro').value.trim(),
+      cidade:     document.getElementById('put-cidade').value.trim(),
+      estado:     document.getElementById('put-estado').value.trim().toUpperCase(),
+    };
+
+    const box = document.getElementById('put-response');
+    box.className = 'response-box loading';
+    box.textContent = 'Atualizando...';
+    document.getElementById('put-status').style.display = 'none';
+
+    try {
+      const res = await fetch(`${API_URL}?cep=${encodeURIComponent(cep)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+
+      box.className = 'response-box ' + (res.ok ? 'success' : 'error');
+      box.textContent = JSON.stringify(data, null, 2);
+      setStatus('put-status', res.ok, `HTTP ${res.status} — ${res.ok ? 'Atualizado' : 'Erro'}`);
+    } catch(e) {
+      box.className = 'response-box error';
+      box.textContent = 'Erro: ' + e.message;
+      setStatus('put-status', false, 'Falha na requisição');
     }
   }
 
